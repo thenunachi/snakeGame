@@ -112,6 +112,29 @@ export default function RegisterPage() {
             Already have an account?{' '}
             <Link to="/login" style={{ color: '#22c55e' }}>Sign in</Link>
           </p>
+
+          <div style={{ borderTop: '1px solid #1a4d1a', marginTop: 20, paddingTop: 20, textAlign: 'center' }}>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <button
+                type="button"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #1a4d1a',
+                  color: '#2a6e2a',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: 8,
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  width: '100%',
+                  letterSpacing: 1,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#00ff41'; e.currentTarget.style.color = '#00ff41'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a4d1a'; e.currentTarget.style.color = '#2a6e2a'; }}
+              >
+                ▶ PLAY AS GUEST (no account needed)
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -1,63 +1,93 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+const PX = "'Press Start 2P', monospace";
 
 const LEVELS = [
   {
     id: 'easy',
-    label: 'Easy',
-    emoji: '🟢',
-    color: '#22c55e',
-    bg: 'rgba(34,197,94,0.1)',
-    border: 'rgba(34,197,94,0.4)',
-    description: 'Slow snake, sparse fruits',
-    details: ['Snake speed: Relaxed', 'Fruits: Appear slowly', '1 fruit on board'],
+    label: 'EASY',
+    color: '#00ff41',
+    border: 'rgba(0,255,65,0.3)',
+    bg: 'rgba(0,255,65,0.05)',
+    details: ['Speed: Slow', 'Fruits: Sparse', '1 fruit on board'],
   },
   {
     id: 'medium',
-    label: 'Medium',
-    emoji: '🟡',
-    color: '#fbbf24',
-    bg: 'rgba(251,191,36,0.1)',
-    border: 'rgba(251,191,36,0.4)',
-    description: 'Moderate speed, more fruits',
-    details: ['Snake speed: Moderate', 'Fruits: Appear frequently', '2 fruits on board'],
+    label: 'MEDIUM',
+    color: '#ffdd00',
+    border: 'rgba(255,221,0,0.3)',
+    bg: 'rgba(255,221,0,0.05)',
+    details: ['Speed: Moderate', 'Fruits: Regular', '2 fruits on board'],
   },
   {
     id: 'hard',
-    label: 'Hard',
-    emoji: '🔴',
-    color: '#ef4444',
-    bg: 'rgba(239,68,68,0.1)',
-    border: 'rgba(239,68,68,0.4)',
-    description: 'Fast snake, fruits everywhere',
-    details: ['Snake speed: Fast', 'Fruits: Appear rapidly', '3 fruits on board'],
+    label: 'HARD',
+    color: '#ff2255',
+    border: 'rgba(255,34,85,0.3)',
+    bg: 'rgba(255,34,85,0.05)',
+    details: ['Speed: Fast', 'Fruits: Frequent', '3 fruits on board'],
   },
 ];
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '48px 16px' }}>
-      {/* Hero */}
-      <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>🐍</div>
-        <h1 style={{ fontSize: 42, fontWeight: 800, color: '#22c55e', marginBottom: 12 }}>
-          Snake Game
-        </h1>
-        <p style={{ color: '#94a3b8', fontSize: 18 }}>
-          Classic snake, 3 difficulty levels. Eat fruits, grow longer, don't crash!
-        </p>
-        <p style={{ color: '#64748b', fontSize: 14, marginTop: 8 }}>
-          Use <kbd style={{ background: '#1e293b', padding: '2px 6px', borderRadius: 4, color: '#e2e8f0' }}>Arrow Keys</kbd> or{' '}
-          <kbd style={{ background: '#1e293b', padding: '2px 6px', borderRadius: 4, color: '#e2e8f0' }}>WASD</kbd> to control
-        </p>
+    <div style={{ maxWidth: 820, margin: '0 auto', padding: '32px 16px' }}>
+
+      {/* ── Hero ── */}
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{
+          fontFamily: PX, fontSize: 28,
+          color: '#00ff41',
+          textShadow: '0 0 10px #00ff41, 0 0 24px rgba(0,255,65,0.4)',
+          marginBottom: 8,
+          letterSpacing: 3,
+        }}>
+          🐍 SNAKE
+        </div>
+        <div style={{ fontFamily: PX, fontSize: 9, color: '#2a6e2a', letterSpacing: 2, marginBottom: 20 }}>
+          INSERT COIN TO PLAY
+        </div>
+
+        {/* Guest / logged-in banner */}
+        {user ? (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 10,
+            background: 'rgba(0,255,65,0.08)', border: '1px solid #00ff4144',
+            padding: '8px 20px', fontFamily: PX, fontSize: 8,
+          }}>
+            <span style={{ color: '#00ff41' }}>▶ {user.username}</span>
+            <span style={{ color: '#2a6e2a' }}>SCORES WILL BE SAVED</span>
+          </div>
+        ) : (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 14,
+            background: 'rgba(255,221,0,0.06)', border: '1px solid #ffdd0044',
+            padding: '10px 20px',
+          }}>
+            <span style={{ fontFamily: PX, fontSize: 7, color: '#ffdd00' }}>
+              GUEST MODE
+            </span>
+            <span style={{ fontFamily: PX, fontSize: 7, color: '#4a4a00' }}>
+              SCORES NOT SAVED
+            </span>
+            <span style={{ fontFamily: PX, fontSize: 7, color: '#2a6e2a' }}>|</span>
+            <Link to="/login" style={{ fontFamily: PX, fontSize: 7, color: '#00ffff' }}>LOGIN</Link>
+            <span style={{ fontFamily: PX, fontSize: 7, color: '#2a6e2a' }}>or</span>
+            <Link to="/register" style={{ fontFamily: PX, fontSize: 7, color: '#00ff41' }}>REGISTER</Link>
+            <span style={{ fontFamily: PX, fontSize: 7, color: '#2a6e2a' }}>to save</span>
+          </div>
+        )}
       </div>
 
-      {/* Level cards */}
-      <h2 style={{ color: '#94a3b8', fontSize: 14, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>
-        Choose Your Level
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+      {/* ── Level select ── */}
+      <div style={{ fontFamily: PX, fontSize: 8, color: '#2a6e2a', letterSpacing: 2, marginBottom: 16 }}>
+        SELECT LEVEL
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         {LEVELS.map((lvl) => (
           <button
             key={lvl.id}
@@ -65,71 +95,97 @@ export default function HomePage() {
             style={{
               background: lvl.bg,
               border: `2px solid ${lvl.border}`,
-              borderRadius: 12,
-              padding: '24px 20px',
+              padding: '22px 18px',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'transform 0.15s, border-color 0.15s',
               color: 'inherit',
+              transition: 'border-color 0.1s, box-shadow 0.1s',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
+            onMouseEnter={e => {
               e.currentTarget.style.borderColor = lvl.color;
+              e.currentTarget.style.boxShadow = `0 0 14px ${lvl.color}44`;
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = '';
+            onMouseLeave={e => {
               e.currentTarget.style.borderColor = lvl.border;
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div style={{ fontSize: 32, marginBottom: 10 }}>{lvl.emoji}</div>
-            <div style={{ color: lvl.color, fontWeight: 700, fontSize: 22, marginBottom: 4 }}>
+            <div style={{
+              fontFamily: PX, fontSize: 13, color: lvl.color,
+              textShadow: `0 0 8px ${lvl.color}`,
+              marginBottom: 14,
+            }}>
               {lvl.label}
             </div>
-            <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
-              {lvl.description}
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {lvl.details.map((d) => (
-                <li key={d} style={{ color: '#64748b', fontSize: 12, marginBottom: 4 }}>
-                  • {d}
+            <ul style={{ listStyle: 'none', padding: 0, marginBottom: 18 }}>
+              {lvl.details.map(d => (
+                <li key={d} style={{ fontFamily: PX, fontSize: 7, color: '#2a6e2a', marginBottom: 7 }}>
+                  › {d}
                 </li>
               ))}
             </ul>
             <div style={{
-              marginTop: 16,
-              background: lvl.color,
-              color: '#0f172a',
-              fontWeight: 700,
-              fontSize: 14,
-              padding: '8px 0',
-              borderRadius: 8,
-              textAlign: 'center',
+              background: lvl.color, color: '#000',
+              fontFamily: PX, fontSize: 8,
+              padding: '9px 0', textAlign: 'center',
+              boxShadow: `3px 3px 0 ${lvl.color}88`,
             }}>
-              Play {lvl.label}
+              ▶ PLAY
             </div>
           </button>
         ))}
       </div>
 
-      {/* How to play */}
+      {/* ── Guest callout (only for non-logged-in) ── */}
+      {!user && (
+        <div style={{
+          marginTop: 24,
+          background: '#000',
+          border: '2px solid #00ff4133',
+          padding: '18px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}>
+          <div>
+            <div style={{ fontFamily: PX, fontSize: 8, color: '#00ff41', marginBottom: 8 }}>
+              WANT TO SAVE YOUR SCORES?
+            </div>
+            <div style={{ fontFamily: PX, fontSize: 7, color: '#2a6e2a', lineHeight: 2 }}>
+              CREATE A FREE ACCOUNT TO TRACK YOUR<br />HIGH SCORES AND CLIMB THE LEADERBOARD
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Link to="/register">
+              <button className="btn btn-primary" style={{ fontSize: '8px' }}>REGISTER FREE</button>
+            </Link>
+            <Link to="/login">
+              <button className="btn btn-secondary" style={{ fontSize: '8px' }}>LOGIN</button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ── How to play ── */}
       <div style={{
-        marginTop: 48,
-        background: '#1e293b',
-        border: '1px solid #334155',
-        borderRadius: 12,
-        padding: 24,
+        marginTop: 24, background: '#000',
+        border: '1px solid #1a4d1a', padding: '18px 20px',
       }}>
-        <h3 style={{ color: '#f8fafc', marginBottom: 16 }}>How to Play</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+        <div style={{ fontFamily: PX, fontSize: 8, color: '#2a6e2a', marginBottom: 14 }}>
+          HOW TO PLAY
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           {[
-            { icon: '🕹️', text: 'Arrow Keys or WASD to move' },
-            { icon: '🍎', text: 'Eat fruits to grow and score' },
-            { icon: '💀', text: 'Avoid walls and your own tail' },
-            { icon: '🏆', text: 'Login to save your high scores' },
-          ].map(({ icon, text }) => (
-            <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#94a3b8', fontSize: 14 }}>
-              <span style={{ fontSize: 20 }}>{icon}</span>
-              <span>{text}</span>
+            ['🕹️', 'ARROW KEYS / WASD'],
+            ['🍎', 'EAT FRUITS TO GROW'],
+            ['💀', 'AVOID WALLS + TAIL'],
+            ['👻', 'RARE FRUITS = POWERS'],
+          ].map(([icon, text]) => (
+            <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>{icon}</span>
+              <span style={{ fontFamily: PX, fontSize: 7, color: '#2a6e2a' }}>{text}</span>
             </div>
           ))}
         </div>

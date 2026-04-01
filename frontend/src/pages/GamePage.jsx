@@ -1077,7 +1077,7 @@ export default function GamePage() {
           onClick={() => { if (phase==='idle'||phase==='over') setGameKey(k=>k+1); }}
         />
         {/* Corner pixel decorations */}
-        {['0,0','0,auto','auto,0','auto,auto'].map((pos,i) => {
+        {['0,0','0,auto','auto,0','auto,auto'].map((_,i) => {
           const [t2,b,l,r] = [i<2?0:undefined,i>=2?0:undefined,i%2===0?0:undefined,i%2!==0?0:undefined];
           return (
             <div key={i} style={{
@@ -1123,8 +1123,22 @@ export default function GamePage() {
                   </div>
                 : <div style={{color:'#4dbb4d',fontSize:8,marginBottom:10}}>SAVING...</div>
             ) : (
-              <div style={{color:'#4dbb4d',fontSize:8,marginBottom:10}}>
-                <Link to="/login" style={{color:'#00ffff'}}>LOGIN</Link> TO SAVE SCORE
+              <div style={{marginBottom:10}}>
+                <div style={{fontFamily:PX,fontSize:7,color:'#ffdd00',marginBottom:8}}>
+                  PLAYING AS GUEST — SCORE NOT SAVED
+                </div>
+                <div style={{display:'flex',gap:8}}>
+                  <Link to="/register">
+                    <button className="btn btn-primary" style={{fontSize:'7px',padding:'6px 12px'}}>
+                      REGISTER FREE
+                    </button>
+                  </Link>
+                  <Link to="/login">
+                    <button className="btn btn-secondary" style={{fontSize:'7px',padding:'6px 12px'}}>
+                      LOGIN
+                    </button>
+                  </Link>
+                </div>
               </div>
             )}
             <div style={{display:'flex',gap:10}}>
