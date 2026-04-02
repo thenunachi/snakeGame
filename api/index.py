@@ -174,7 +174,9 @@ def health():
         conn.close()
         return {"status": "ok", "db": "connected", "postgres": USE_POSTGRES}
     except Exception as e:
-        return {"status": "ok", "db": "error", "detail": str(e)}
+        return {"status": "ok", "db": "error", "detail": str(e),
+                "url_prefix": DATABASE_URL[:20] if DATABASE_URL else "NOT_SET",
+                "use_postgres": USE_POSTGRES}
 
 
 @app.post("/api/auth/register")
