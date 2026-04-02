@@ -23,8 +23,12 @@ USE_POSTGRES = bool(DATABASE_URL)
 if USE_POSTGRES:
     import psycopg2
     import psycopg2.extras
+    # Supabase / Heroku use postgres:// — psycopg2 needs postgresql://
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # Supabase requires SSL — append if not already present
+    if "sslmode" not in DATABASE_URL:
+        DATABASE_URL += "?sslmode=require"
 
 DB_PATH = "/tmp/snake_game.db"
 
@@ -164,7 +168,14 @@ class ScoreRequest(BaseModel):
 # ── Routes ──────────────────────────────────────────────────────────────────
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        conn.close()
+        return {"status": "ok", "db": "connected", "postgres": USE_POSTGRES}
+    except Exception as e:
+        return {"status": "ok", "db": "error", "detail": str(e)}
 
 
 @app.post("/api/auth/register")
@@ -195,9 +206,10 @@ def register(req: RegisterRequest):
         return {"token": token, "username": req.username}
     except Exception as e:
         conn.rollback()
-        if "unique" in str(e).lower() or "UNIQUE" in str(e):
+        err = str(e).lower()
+        if "unique" in err or "duplicate" in err:
             raise HTTPException(status_code=400, detail="Username or email already exists")
-        raise HTTPException(status_code=500, detail="Registration failed")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
     finally:
         conn.close()
 
