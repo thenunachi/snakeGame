@@ -25,9 +25,6 @@ if USE_POSTGRES:
     # Supabase / Heroku use postgres:// — psycopg2 needs postgresql://
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    # Supabase requires SSL — append if not already present
-    if "sslmode" not in DATABASE_URL:
-        DATABASE_URL += "?sslmode=require"
 
 DB_PATH = "/tmp/snake_game.db"
 
@@ -36,10 +33,13 @@ security = HTTPBearer()
 # ── App ─────────────────────────────────────────────────────────────────────
 app = FastAPI(title="Snake Game API")
 
+_cors_origins_env = os.environ.get("CORS_ORIGINS", "")
+CORS_ORIGINS = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] if _cors_origins_env else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=bool(_cors_origins_env),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -47,7 +47,7 @@ app.add_middleware(
 # ── Database ────────────────────────────────────────────────────────────────
 def get_db():
     if USE_POSTGRES:
-        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require", cursor_factory=psycopg2.extras.RealDictCursor)
     else:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
