@@ -2,7 +2,6 @@ import os
 import sqlite3
 from datetime import datetime, timedelta
 from typing import Optional
-from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,15 +22,9 @@ USE_POSTGRES = bool(DATABASE_URL)
 if USE_POSTGRES:
     import psycopg2
     import psycopg2.extras
-    _parsed = urlparse(DATABASE_URL if not DATABASE_URL.startswith("postgres://") else DATABASE_URL.replace("postgres://", "postgresql://", 1))
-    PG_PARAMS = {
-        "host": _parsed.hostname,
-        "port": _parsed.port or 5432,
-        "dbname": _parsed.path.lstrip("/"),
-        "user": _parsed.username,
-        "password": _parsed.password,
-        "sslmode": "require",
-    }
+    # psycopg2 needs postgresql://, not postgres://
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 DB_PATH = "/tmp/snake_game.db"
 
@@ -54,7 +47,7 @@ app.add_middleware(
 # ── Database ────────────────────────────────────────────────────────────────
 def get_db():
     if USE_POSTGRES:
-        conn = psycopg2.connect(**PG_PARAMS, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     else:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
