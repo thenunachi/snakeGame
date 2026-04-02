@@ -7,7 +7,6 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from mangum import Mangum
 import bcrypt
 from jose import JWTError, jwt
 
@@ -318,5 +317,3 @@ def leaderboard():
     return rows
 
 
-# Vercel serverless handler
-handler = Mangum(app, lifespan="off")
