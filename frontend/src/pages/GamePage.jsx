@@ -827,12 +827,14 @@ export default function GamePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const canvasRef = useRef(null);
+  const pendingDirRef = useRef(null);
 
   const [displayScore, setDisplayScore] = useState(0);
   const [phase, setPhase] = useState('idle');
   const [gameKey, setGameKey] = useState(0);
   const [scoreSaved, setScoreSaved] = useState(false);
   const [powerup, setPowerup] = useState(null);
+  const [canvasScale, setCanvasScale] = useState(() => Math.min(1, (window.innerWidth - 24) / W));
 
   const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG.easy;
   const levelColors = { easy: '#00ff41', medium: '#ffdd00', hard: '#ff2255' };
@@ -849,7 +851,8 @@ export default function GamePage() {
     if (gameKey === 0) { drawIdleScreen(ctx, cfg, themeId, lvlColor); return; }
 
     let snake = [{ x: 15, y: 15 }, { x: 14, y: 15 }, { x: 13, y: 15 }];
-    let dir = { dx: 1, dy: 0 }, pendingDir = null;
+    let dir = { dx: 1, dy: 0 };
+    pendingDirRef.current = null;
     let fruits = [], score = 0, alive = true, tickCount = 0;
     const abilities = { ghost: 0, snail: 0 };
     let notifiedAbility = '';
@@ -954,7 +957,7 @@ export default function GamePage() {
       const now = Date.now(); syncPowerupUI(now);
       tickCount++;
       if (abilities.snail > now && tickCount % 2 === 0) return;
-      if (pendingDir) { dir = pendingDir; pendingDir = null; }
+      if (pendingDirRef.current) { dir = pendingDirRef.current; pendingDirRef.current = null; }
       const head = snake[0];
       let nh = { x: head.x+dir.dx, y: head.y+dir.dy };
       if (nh.x<0||nh.x>=GRID||nh.y<0||nh.y>=GRID) {
@@ -981,15 +984,41 @@ export default function GamePage() {
       const MAP = { ArrowUp:{dx:0,dy:-1},ArrowDown:{dx:0,dy:1},ArrowLeft:{dx:-1,dy:0},ArrowRight:{dx:1,dy:0},w:{dx:0,dy:-1},s:{dx:0,dy:1},a:{dx:-1,dy:0},d:{dx:1,dy:0} };
       const nd = MAP[e.key]; if (!nd) return;
       if (nd.dx===-dir.dx && nd.dy===-dir.dy) return;
-      pendingDir = nd; e.preventDefault();
+      pendingDirRef.current = nd; e.preventDefault();
     }
+
+    // Touch swipe controls
+    let touchStart = null;
+    function handleTouchStart(e) {
+      touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    function handleTouchEnd(e) {
+      if (!touchStart || !alive) return;
+      const dx = e.changedTouches[0].clientX - touchStart.x;
+      const dy = e.changedTouches[0].clientY - touchStart.y;
+      touchStart = null;
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      let nd;
+      if (Math.abs(dx) > Math.abs(dy)) nd = dx > 0 ? {dx:1,dy:0} : {dx:-1,dy:0};
+      else nd = dy > 0 ? {dx:0,dy:1} : {dx:0,dy:-1};
+      if (nd.dx===-dir.dx && nd.dy===-dir.dy) return;
+      pendingDirRef.current = nd;
+      e.preventDefault();
+    }
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     spawnFruit();
     const tickTimer = setInterval(gameTick, cfg.tickMs);
     const fruitTimer = setInterval(spawnFruit, cfg.fruitInterval);
     window.addEventListener('keydown', handleKey);
 
-    return () => { alive=false; cancelAnimationFrame(rafId); clearInterval(tickTimer); clearInterval(fruitTimer); window.removeEventListener('keydown',handleKey); };
+    return () => {
+      alive=false; cancelAnimationFrame(rafId); clearInterval(tickTimer); clearInterval(fruitTimer);
+      window.removeEventListener('keydown', handleKey);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    };
   }, [gameKey]); // eslint-disable-line
 
   useEffect(() => {
@@ -1009,15 +1038,40 @@ export default function GamePage() {
     }
   }, []); // eslint-disable-line
 
+  useEffect(() => {
+    const update = () => setCanvasScale(Math.min(1, (window.innerWidth - 24) / W));
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   // ── 90s arcade UI ──────────────────────────────────────────────────────
   const canvasBorderColor = phase==='over' ? '#ff2255' : powerup ? powerup.color+'cc' : lvlColor;
 
+  const dpadStyle = {
+    width: 56, height: 56, fontSize: 20,
+    background: '#0a0a0a', color: '#00ff41',
+    border: '2px solid #00ff4166', borderRadius: 6,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 0 8px #00ff4133',
+    WebkitTapHighlightColor: 'transparent',
+    touchAction: 'manipulation',
+  };
+  const scaledW = Math.round(W * canvasScale);
+  const isMobile = canvasScale < 1;
+
+  const handleDpad = (nd) => {
+    if (phase === 'idle' || phase === 'over') { setGameKey(k => k + 1); return; }
+    const cur = pendingDirRef.current;
+    if (nd.dx === -(cur || {dx:0}).dx && nd.dy === -(cur || {dy:0}).dy) return;
+    pendingDirRef.current = nd;
+  };
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'16px', background:'#000', minHeight:'calc(100vh - 56px)' }}>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'8px', background:'#000', minHeight:'calc(100vh - 56px)' }}>
 
       {/* ── Arcade header ── */}
       <div style={{
-        width: W, marginBottom: 8,
+        width: scaledW, marginBottom: 8,
         background: '#000', border: `2px solid ${lvlColor}`,
         boxShadow: `0 0 12px ${lvlColor}66, inset 0 0 20px rgba(0,0,0,0.8)`,
         padding: '8px 12px',
@@ -1064,39 +1118,33 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* ── Canvas ── */}
+      {/* ── Canvas (responsive scaled wrapper) ── */}
       <div style={{
+        width: scaledW, height: Math.round(H * canvasScale),
         position: 'relative',
         border: `3px solid ${canvasBorderColor}`,
         boxShadow: `0 0 20px ${canvasBorderColor}66, 0 0 40px ${canvasBorderColor}22`,
         transition: 'border-color 0.3s, box-shadow 0.3s',
+        overflow: 'hidden',
       }}>
-        <canvas
-          ref={canvasRef} width={W} height={H}
-          style={{ display:'block', cursor: phase!=='running' ? 'pointer' : 'default' }}
-          onClick={() => { if (phase==='idle'||phase==='over') setGameKey(k=>k+1); }}
-        />
-        {/* Corner pixel decorations */}
-        {['0,0','0,auto','auto,0','auto,auto'].map((_,i) => {
-          const [t2,b,l,r] = [i<2?0:undefined,i>=2?0:undefined,i%2===0?0:undefined,i%2!==0?0:undefined];
-          return (
-            <div key={i} style={{
-              position:'absolute', top:t2, bottom:b, left:l, right:r,
-              width:10, height:10,
-              borderTop:    (i<2)  ? `3px solid ${canvasBorderColor}` : undefined,
-              borderBottom: (i>=2) ? `3px solid ${canvasBorderColor}` : undefined,
-              borderLeft:   (i%2===0) ? `3px solid ${canvasBorderColor}` : undefined,
-              borderRight:  (i%2!==0) ? `3px solid ${canvasBorderColor}` : undefined,
-              zIndex: 10,
-            }}/>
-          );
-        })}
+        <div style={{
+          transform: `scale(${canvasScale})`,
+          transformOrigin: 'top left',
+          width: W, height: H,
+          position: 'absolute', top: 0, left: 0,
+        }}>
+          <canvas
+            ref={canvasRef} width={W} height={H}
+            style={{ display:'block', cursor: phase!=='running' ? 'pointer' : 'default', touchAction:'none' }}
+            onClick={() => { if (phase==='idle'||phase==='over') setGameKey(k=>k+1); }}
+          />
+        </div>
       </div>
 
       {/* ── Fruit legend ── */}
       <div style={{
-        width: W, marginTop: 8,
-        display: 'flex', gap:20, justifyContent:'center',
+        width: scaledW, marginTop: 8,
+        display: 'flex', gap:12, justifyContent:'center', flexWrap:'wrap',
         fontFamily: PX, fontSize: 7, color: '#2a6e2a',
       }}>
         {[['#e81212','🍎','+10'], ['#818cf8','👻','+20 GHOST'], ['#eab308','🐌','+20 SLOW']].map(([color,icon,text])=>(
@@ -1107,8 +1155,23 @@ export default function GamePage() {
         ))}
       </div>
 
+      {/* ── D-pad (mobile/tablet) ── */}
+      {isMobile && (
+        <div style={{ marginTop:12, userSelect:'none' }}>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+            <button onPointerDown={()=>handleDpad({dx:0,dy:-1})} style={dpadStyle}>▲</button>
+            <div style={{ display:'flex', gap:4 }}>
+              <button onPointerDown={()=>handleDpad({dx:-1,dy:0})} style={dpadStyle}>◀</button>
+              <div style={{...dpadStyle, background:'transparent', border:'none', boxShadow:'none'}}/>
+              <button onPointerDown={()=>handleDpad({dx:1,dy:0})} style={dpadStyle}>▶</button>
+            </div>
+            <button onPointerDown={()=>handleDpad({dx:0,dy:1})} style={dpadStyle}>▼</button>
+          </div>
+        </div>
+      )}
+
       {/* ── Controls panel ── */}
-      <div style={{ width: W, marginTop:8, fontFamily: PX }}>
+      <div style={{ width: scaledW, marginTop:8, fontFamily: PX }}>
         {phase === 'over' && (
           <div style={{
             background: '#050005', border:'2px solid #ff2255',
@@ -1158,7 +1221,7 @@ export default function GamePage() {
         )}
 
         <div style={{color:'#1a4d1a',fontSize:7,letterSpacing:1}}>
-          ARROW KEYS / WASD TO MOVE &nbsp;·&nbsp; SPACE TO START
+          {isMobile ? 'SWIPE OR USE D-PAD TO MOVE · TAP TO START' : 'ARROW KEYS / WASD TO MOVE · SPACE TO START'}
         </div>
       </div>
     </div>
