@@ -1071,7 +1071,7 @@ export default function GamePage() {
 
       {/* ── Arcade header ── */}
       <div style={{
-        width: scaledW, marginBottom: 8,
+        width: scaledW, maxWidth: 'calc(100vw - 16px)', marginBottom: 8,
         background: '#000', border: `2px solid ${lvlColor}`,
         boxShadow: `0 0 12px ${lvlColor}66, inset 0 0 20px rgba(0,0,0,0.8)`,
         padding: '8px 12px',
@@ -1121,6 +1121,7 @@ export default function GamePage() {
       {/* ── Canvas (responsive scaled wrapper) ── */}
       <div style={{
         width: scaledW, height: Math.round(H * canvasScale),
+        maxWidth: 'calc(100vw - 16px)',
         position: 'relative',
         border: `3px solid ${canvasBorderColor}`,
         boxShadow: `0 0 20px ${canvasBorderColor}66, 0 0 40px ${canvasBorderColor}22`,
@@ -1171,7 +1172,7 @@ export default function GamePage() {
       )}
 
       {/* ── Controls panel ── */}
-      <div style={{ width: scaledW, marginTop:8, fontFamily: PX }}>
+      <div style={{ width: scaledW, maxWidth: 'calc(100vw - 16px)', marginTop:8, fontFamily: PX }}>
         {phase === 'over' && (
           <div style={{
             background: '#050005', border:'2px solid #ff2255',
@@ -1187,7 +1188,7 @@ export default function GamePage() {
                 : <div style={{color:'#4dbb4d',fontSize:8,marginBottom:10}}>SAVING...</div>
             ) : (
               <div style={{marginBottom:10}}>
-                <div style={{fontFamily:PX,fontSize:7,color:'#ffdd00',marginBottom:8}}>
+                <div className="guest-panel-text" style={{fontFamily:PX,fontSize:7,color:'#ffdd00',marginBottom:8}}>
                   PLAYING AS GUEST — SCORE NOT SAVED
                 </div>
                 <div style={{display:'flex',gap:8}}>
@@ -1204,7 +1205,7 @@ export default function GamePage() {
                 </div>
               </div>
             )}
-            <div style={{display:'flex',gap:10}}>
+            <div className="game-btn-row" style={{display:'flex',gap:10}}>
               <button onClick={()=>setGameKey(k=>k+1)} className="btn btn-primary">▶ PLAY AGAIN</button>
               <button onClick={()=>navigate('/')} className="btn btn-secondary">◀ LEVELS</button>
               <Link to="/customize"><button className="btn btn-secondary">🎨 SKINS</button></Link>
@@ -1213,7 +1214,7 @@ export default function GamePage() {
         )}
 
         {phase === 'idle' && (
-          <div style={{display:'flex',gap:10,marginBottom:10}}>
+          <div className="game-btn-row" style={{display:'flex',gap:10,marginBottom:10}}>
             <button onClick={()=>setGameKey(k=>k+1)} className="btn btn-primary">▶ START</button>
             <button onClick={()=>navigate('/')} className="btn btn-secondary">◀ BACK</button>
             <Link to="/customize"><button className="btn btn-secondary">🎨 SKINS</button></Link>

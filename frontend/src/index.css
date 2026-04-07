@@ -217,3 +217,35 @@ input  { font-family: inherit; }
 /* ── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; background: #000; }
 ::-webkit-scrollbar-thumb { background: #00ff41; }
+
+/* ── Responsive / Mobile ──────────────────────────────── */
+@media (max-width: 600px) {
+  /* Navbar: hide desktop links, show hamburger */
+  .nav-desktop-links { display: none !important; }
+  .nav-desktop-auth  { display: none !important; }
+  .nav-hamburger     { display: flex !important; align-items: center; justify-content: center; }
+
+  /* Game page: buttons wrap so they don't overflow */
+  .game-btn-row {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+  .game-btn-row .btn {
+    font-size: 6px !important;
+    padding: 6px 8px !important;
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  /* Guest panel text size */
+  .guest-panel-text {
+    font-size: 6px !important;
+    word-break: break-word;
+  }
+}
+
+@media (min-width: 601px) {
+  /* Mobile dropdown hidden on desktop */
+  .nav-mobile-menu { display: none !important; }
+  .nav-hamburger   { display: none !important; }
+}
